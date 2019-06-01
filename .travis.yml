@@ -1,0 +1,24 @@
+services:
+  - docker
+
+cache: docker
+
+branches:
+  only:
+    - master
+  except:
+    - # Do not build tags that we create when we upload to GitHub Releases
+    - /^(?i:continuous)$/
+
+matrix:
+  include:
+    - env: ARCH=x86_64 OPENSSL=1.1.1c
+
+install:
+  - docker build -t python-${ARCH} --build-arg Arch=${ARCH} --build-arg OpenSLL=${OPENSSL} .travis
+
+script:
+  - docker run --cap-add SYS_ADMIN --device /dev/fuse --mount src=$PWD,dst=/work,type=bind python-${ARCH}
+
+after_success:
+  - ./.travis/after-success.sh
