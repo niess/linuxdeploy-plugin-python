@@ -86,7 +86,7 @@ class PluginTest(unittest.TestCase):
         """
         appimage, version = "python3-x86_64.AppImage", PYTHON3_VERSION
         if not os.path.exists(os.path.join(TESTDIR, appimage)):
-            self.build_python_appimage("python3")
+            self.build_python_appimage(PYTHON3_VERSION)
         self.check_base(appimage, version)
 
 
@@ -103,7 +103,7 @@ class PluginTest(unittest.TestCase):
         appimage, version = "python2-x86_64.AppImage", PYTHON2_VERSION
         if not os.path.exists(os.path.join(TESTDIR, appimage)):
             self.build_python_appimage(
-                "python2", PYTHON_SOURCE=python_url(version))
+                PYTHON2_VERSION, PYTHON_SOURCE=python_url(version))
         self.check_base(appimage, version)
 
 
@@ -181,9 +181,12 @@ class PluginTest(unittest.TestCase):
                             version, str(python)))
 
 
-    def build_python_appimage(self, exe, **kwargs):
+    def build_python_appimage(self, version, **kwargs):
         """Build a Python AppImage using linux-deploy-python
         """
+        nickname = "python" + version[0]
+        exe = ".python" + version[:3]
+
         appdir = TESTDIR +  "/AppDir"
         if os.path.exists(appdir):
             shutil.rmtree(appdir)
@@ -194,33 +197,41 @@ class PluginTest(unittest.TestCase):
 
         # Create generic resources for the application deployement
         src = ROOTDIR + "/appimage/resources/linuxdeploy-plugin-python.png"
-        icon = os.path.join(resdir, exe + ".png")
+        icon = os.path.join(resdir, nickname + ".png")
         shutil.copy(src, icon)
 
-        desktop = os.path.join(resdir, exe + ".desktop")
+        desktop = os.path.join(resdir, nickname + ".desktop")
         with open(desktop, "w") as f:
             f.write("""\
 [Desktop Entry]
 Categories=Science;Engineering;
 Type=Application
 Icon={0:}
-Exec={0:}
+Exec={1:}
 Name={0:}
-""".format(exe))
+""".format(nickname, exe))
 
-        command = ("./" + LINUX_DEPLOY,
-            "--appdir", str(appdir),
-            "-i", str(icon),
-            "-d", str(desktop),
-            "--plugin", "python",
-            "--output", "appimage")
+        for index in range(2):
+            command = ["./" + LINUX_DEPLOY,
+                "--appdir", appdir,
+                "-i", icon,
+                "-d", desktop]
+            if index == 0:
+                command += [
+                    "--plugin", "python"]
+            else:
+                command += [
+                    "-e", os.path.join(appdir, "usr", "bin", exe),
+                    "--custom-apprun", os.path.join(appdir, "usr", "bin",
+                                                    nickname),
+                    "--output", "appimage"]
 
-        env = os.environ.copy()
-        env.update(kwargs)
-        system(" ".join(command), env=env)
+            env = os.environ.copy()
+            env.update(kwargs)
+            system(" ".join(command), env=env)
 
         shutil.copy(
-            TESTDIR + "/{:}-{:}.AppImage".format(exe, os.environ["ARCH"]),
+            TESTDIR + "/{:}-{:}.AppImage".format(nickname, os.environ["ARCH"]),
             ROOTDIR + "/appimage")
 
 

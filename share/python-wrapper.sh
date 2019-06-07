@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export LD_LIBRARY_PATH="${APPDIR}/usr/lib:${LD_LIBRARY_PATH}"
+
 # Resolve symlinks within the image
 nickname="{{PYTHON}}"
 executable="${APPDIR}/usr/bin/${nickname}"

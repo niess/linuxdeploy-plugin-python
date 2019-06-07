@@ -17,7 +17,7 @@ are located on the [wiki][WIKI_DEVS].
 Ready to use [AppImage][APPIMAGE] distributions of [Python][PYTHON] are provided
 [below](##Downloads) or in the [release][RELEASE] area. A one liner example is:
 ```
-wget -cq https://github.com/niess/linuxdeploy-plugin-python/releases/download/continuous/python3-$(arch).AppImage && chmod u+x python3-$(arch).AppImage && ./python3-$(arch).AppImage
+wget -cq https://github.com/niess/linuxdeploy-plugin-python/releases/download/continuous/python3-x86_64.AppImage && chmod u+x python3-x86_64.AppImage && ./python3-x86_64.AppImage
 ```
 which will install and run a [Python][PYTHON] instance.  See the instructions on
 the [wiki][WIKI_USERS] for more detailed usage.
