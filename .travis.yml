@@ -12,10 +12,10 @@ branches:
 
 matrix:
   include:
-    - env: ARCH=x86_64 OPENSSL=1.1.1c
+    - env: ARCH=x86_64
 
 install:
-  - docker build -t python-${ARCH} --build-arg Arch=${ARCH} --build-arg OpenSLL=${OPENSSL} .travis
+  - docker build -t python-${ARCH} --build-arg Arch=${ARCH} .travis
 
 script:
   - docker run --cap-add SYS_ADMIN --device /dev/fuse --mount src=$PWD,dst=/work,type=bind python-${ARCH}

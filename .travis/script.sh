@@ -12,5 +12,9 @@ if [ -n "${OPENSSL}" ]; then
 fi
 
 
-DEBUG=true ./appimage/build-appimage.sh
+DEBUG=true ./appimage/build-plugin.sh
+DEBUG=true ./appimage/build-python.sh python2
+DEBUG=true ./appimage/build-python.sh python3
+DEBUG=true ./appimage/build-python.sh scipy
+
 python3 -m tests

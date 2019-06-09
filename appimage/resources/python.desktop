@@ -1,0 +1,6 @@
+[Desktop Entry]
+Categories=Science;Engineering;
+Type=Application
+Icon=python
+Exec={{exe}}
+Name={{name}}

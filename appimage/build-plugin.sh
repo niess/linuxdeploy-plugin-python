@@ -31,7 +31,7 @@ pushd $BUILD_DIR
 
 
 # Build the AppImage
-appimagetool="appimagetool-$(arch).AppImage"
+appimagetool="appimagetool-${ARCH}.AppImage"
 
 if [ ! -f "${appimagetool}" ]; then
     url="https://github.com/AppImage/AppImageKit/releases/download/continuous"
@@ -46,11 +46,11 @@ cp -r "${REPO_ROOT}/share" "AppDir"
 
 pushd "AppDir"
 cp "${REPO_ROOT}/${EXEC_NAME}.sh" "."
-cp "${REPO_ROOT}/appimage/resources/"* "."
+cp "${REPO_ROOT}/appimage/resources/python.png" "${EXEC_NAME}.png"
+cp "${REPO_ROOT}/appimage/resources/plugin.desktop" "${EXEC_NAME}.desktop"
 ln -s "${EXEC_NAME}.png" ".DirIcon"
 popd
 
 ARCH="${ARCH}" ./"${appimagetool}" AppDir
-ls -lh
 popd
-mv "${BUILD_DIR}/${EXEC_NAME}-${ARCH}.AppImage" "appimage"
+mv "${BUILD_DIR}/${EXEC_NAME}-${ARCH}.AppImage" "${REPO_ROOT}/appimage"

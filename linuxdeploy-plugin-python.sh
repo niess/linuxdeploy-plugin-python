@@ -124,6 +124,12 @@ cd "${source_dir}"
 HOME="${PYTHON_BUILD_DIR}" make -j"$NPROC" DESTDIR="$APPDIR" install
 
 
+# Copy any TCl/Tk shared data
+if [ -d "/usr/share/tcltk" ]; then
+    cp -r "/usr/share/tcltk" "${APPDIR}/usr/share/tcltk"
+fi
+
+
 # Install any extra requirements with pip
 if [ ! -z "${PIP_REQUIREMENTS}" ]; then
     cd "${APPDIR}/usr"
@@ -137,6 +143,7 @@ cd "$APPDIR/usr"
 rm -rf "bin/python"*"-config" "bin/idle"* "include" "lib/pkgconfig" \
        "share/doc" "share/man" "lib/libpython"*".a" "lib/python"*"/test" \
        "lib/python"*"/config-"*"-x86_64-linux-gnu"
+
 
 
 

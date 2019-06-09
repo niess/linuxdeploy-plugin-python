@@ -6,18 +6,23 @@ import unittest
 import sys
 
 
-PYTHON2_VERSION = "2.7.16"
-PYTHON3_VERSION = "3.7.3"
-
-LINUX_DEPLOY = "linuxdeploy-x86_64.AppImage"
-URL = "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous"
-PLUGIN = "linuxdeploy-plugin-python-x86_64.AppImage"
+TAGS = ("python2", "python3")
 
 TESTDIR = "/tmp/test-linuxdeploy-plugin-python"
 ROOTDIR = os.path.realpath(os.path.dirname(__file__) + "/..").strip()
 
-
 _is_python2 = sys.version_info[0] == 2
+
+
+def get_version(recipe):
+    path = os.path.join(ROOTDIR, "appimage", "recipes", recipe + ".sh")
+    with open(path) as f:
+        for line in f:
+            if line.startswith("export PYTHON_VERSION="):
+                version = line.split("=")[-1]
+                return version.strip().replace('"', "").replace("'", "")
+        else:
+            raise ValueError("version not found")
 
 
 def system(command, env=None):
@@ -29,15 +34,9 @@ def system(command, env=None):
     if not _is_python2:
         out = out.decode()
     if p.returncode != 0:
-        raise RuntimeError(out)
+        raise RuntimeError(os.linesep.join(
+            ("", "COMMAND:", command, "OUTPUT:", out)))
     return out
-
-
-def python_url(version):
-    """Download URL for specific Python version
-    """
-    base = "https://www.python.org/ftp/python"
-    return "{0:}/{1:}/Python-{1:}.tgz".format(base, version)
 
 
 class PluginTest(unittest.TestCase):
@@ -61,58 +60,56 @@ class PluginTest(unittest.TestCase):
             os.environ["USER"] = user
             os.environ["HOME"] = home
             if not os.path.exists(home):
-                os.makedirs(os.path.join(home, ".local", "lib",
-                            "python" + PYTHON2_VERSION[:3], "site-packages"))
-                os.makedirs(os.path.join(home, ".local", "lib",
-                            "python" + PYTHON3_VERSION[:3], "site-packages"))
+                for tag in TAGS:
+                    version = get_version(tag)
+                    os.makedirs(os.path.join(home, ".local", "lib",
+                        "python" + version[:3], "site-packages"))
             bindir = os.path.join(home, ".local", "bin")
             os.environ["PATH"] = ":".join((bindir, os.environ["PATH"]))
 
-        system(ROOTDIR + "/appimage/build-appimage.sh")
-
-        try:
+        if not os.path.exists(TESTDIR):
             os.makedirs(TESTDIR)
-        except:
-            pass
         os.chdir(TESTDIR)
-        system("wget --no-check-certificate -c {:}/{:}".format(
-            URL, LINUX_DEPLOY))
-        system("chmod u+x {:}".format(LINUX_DEPLOY))
-        shutil.copy(ROOTDIR + "/appimage/" + PLUGIN, TESTDIR)
+
+        for tag in TAGS:
+            appimage = "{:}-{:}.AppImage".format(tag, os.environ["ARCH"])
+            shutil.copy(
+                os.path.join(ROOTDIR, "appimage", appimage),
+                os.path.join(TESTDIR, appimage))
 
 
     def test_python3_base(self):
         """Test the base functionalities of a Python 3 AppImage
         """
-        appimage, version = "python3-x86_64.AppImage", PYTHON3_VERSION
-        if not os.path.exists(os.path.join(TESTDIR, appimage)):
-            self.build_python_appimage(PYTHON3_VERSION)
-        self.check_base(appimage, version)
+        self.check_base("python3")
+
+    def test_python3_modules(self):
+        """Test the modules availability of a Python 3 AppImage
+        """
+        self.check_modules("python3")
 
 
     def test_python3_venv(self):
         """Test venv from a Python 3 AppImage
         """
-        appimage, version = "python3-x86_64.AppImage", PYTHON3_VERSION
-        self.check_venv(appimage, version)
+        self.check_venv("python3")
 
 
     def test_python2_base(self):
         """Test the base functionalities of a Python 2 AppImage
         """
-        appimage, version = "python2-x86_64.AppImage", PYTHON2_VERSION
-        if not os.path.exists(os.path.join(TESTDIR, appimage)):
-            self.build_python_appimage(
-                PYTHON2_VERSION, PYTHON_SOURCE=python_url(version))
-        self.check_base(appimage, version)
+        self.check_base("python2")
 
 
-    def check_base(self, appimage, version):
+    def check_base(self, tag):
         """Check the base functionalities of a Python AppImage
         """
+        version = get_version(tag)
+        appimage = "python{:}-{:}.AppImage".format(
+            version[0], os.getenv("ARCH"))
 
         # Check the Python system configuration
-        python = os.path.realpath(appimage)
+        python = os.path.join(TESTDIR, appimage)
         cfg = self.get_python_config(python)
 
         v = [int(vi) for vi in version.split(".")]
@@ -136,9 +133,12 @@ class PluginTest(unittest.TestCase):
                             version, os.path.join(TESTDIR, appimage)))
 
 
-    def check_venv(self, appimage, version):
+    def check_venv(self, tag):
         """Check venv from a Python AppImage
         """
+        version = get_version(tag)
+        appimage = "python{:}-{:}.AppImage".format(
+            version[0], os.getenv("ARCH"))
 
         # Generate a virtual environment
         if os.path.exists("ENV"):
@@ -181,58 +181,47 @@ class PluginTest(unittest.TestCase):
                             version, str(python)))
 
 
-    def build_python_appimage(self, version, **kwargs):
-        """Build a Python AppImage using linux-deploy-python
+    def check_modules(self, tag):
+        """Check the modules availability of a Python AppImage
         """
-        nickname = "python" + version[0]
-        exe = ".python" + version[:3]
+        version = get_version(tag)
+        appimage = "python{:}-{:}.AppImage".format(
+            version[0], os.getenv("ARCH"))
 
-        appdir = TESTDIR +  "/AppDir"
-        if os.path.exists(appdir):
-            shutil.rmtree(appdir)
-        resdir = TESTDIR + "/resources"
-        if os.path.exists(resdir):
-            shutil.rmtree(resdir)
-        os.makedirs(resdir)
+        def import_(module):
+            system("./{:} -c 'import {:}'".format(appimage, module))
 
-        # Create generic resources for the application deployement
-        src = ROOTDIR + "/appimage/resources/linuxdeploy-plugin-python.png"
-        icon = os.path.join(resdir, nickname + ".png")
-        shutil.copy(src, icon)
+        modules = {
+            "a": ["abc", "aifc", "argparse", "array", "ast", "asynchat",
+                  "asyncio", "asyncore", "atexit", "audioop"],
+            "b": ["base64", "bdb", "binascii", "binhex", "bisect", "builtins",
+                  "bz2"],
+            "c": ["calendar", "cgi", "cgitb", "chunk", "cmath", "cmd", "code",
+                  "codecs", "codeop", "collections", "colorsys", "compileall",
+                  "concurrent", "configparser", "contextlib", "contextvars",
+                  "copy", "copyreg", "cProfile", "crypt", "csv", "ctypes",
+                  "curses"],
+            "d": ["dataclasses", "datetime", "dbm", "decimal", "difflib",
+                  "dis", "distutils", "doctest"],
+            "e": ["email", "encodings", "ensurepip", "enum", "errno"],
+            "f": ["faulthandler", "fcntl", "filecmp", "fileinput", "fnmatch",
+                  "fractions", "ftplib", "functools"],
+            "g": ["gc", "getopt", "getpass", "gettext", "glob", "grp", "gzip"],
+            "h": ["hashlib", "heapq", "hmac", "html", "http"],
+            "i": ["imaplib", "imghdr", "importlib", "inspect", "io",
+                  "ipaddress", "itertools"],
+            "j": ["json"],
+            "k": ["keyword"],
+            "l": ["lib2to3", "linecache", "locale", "logging", "lzma"],
+            "m": ["mailbox", "mailcap", "marshal", "math", "mimetypes", "mmap",
+                  "modulefinder", "multiprocessing"],
+            "n": ["netrc", "nis", "nntplib", "numbers"],
+            "t": ["tkinter"]
+        }
 
-        desktop = os.path.join(resdir, nickname + ".desktop")
-        with open(desktop, "w") as f:
-            f.write("""\
-[Desktop Entry]
-Categories=Science;Engineering;
-Type=Application
-Icon={0:}
-Exec={1:}
-Name={0:}
-""".format(nickname, exe))
-
-        for index in range(2):
-            command = ["./" + LINUX_DEPLOY,
-                "--appdir", appdir,
-                "-i", icon,
-                "-d", desktop]
-            if index == 0:
-                command += [
-                    "--plugin", "python"]
-            else:
-                command += [
-                    "-e", os.path.join(appdir, "usr", "bin", exe),
-                    "--custom-apprun", os.path.join(appdir, "usr", "bin",
-                                                    nickname),
-                    "--output", "appimage"]
-
-            env = os.environ.copy()
-            env.update(kwargs)
-            system(" ".join(command), env=env)
-
-        shutil.copy(
-            TESTDIR + "/{:}-{:}.AppImage".format(nickname, os.environ["ARCH"]),
-            ROOTDIR + "/appimage")
+        for sublist in modules.values():
+            for module in sublist:
+                import_(module)
 
 
     def get_python_config(self, python, setup=None):
