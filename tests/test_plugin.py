@@ -204,11 +204,12 @@ class PluginTest(unittest.TestCase):
         with open(desktop, "w") as f:
             f.write("""\
 [Desktop Entry]
-Categories=Science;Engineering;
+Categories=Development;
 Type=Application
 Icon={0:}
 Exec={1:}
 Name={0:}
+Terminal=true
 """.format(nickname, exe))
 
         for index in range(2):
