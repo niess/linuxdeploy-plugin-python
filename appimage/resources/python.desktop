@@ -1,6 +1,7 @@
 [Desktop Entry]
-Categories=Science;Engineering;
+Categories=Development;
 Type=Application
 Icon=python
 Exec={{exe}}
 Name={{name}}
+Terminal=true
