@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # Configure the environment
-export LD_LIBRARY_PATH="${APPDIR}/usr/lib:${LD_LIBRARY_PATH}"
 export TCL_LIBRARY="${APPDIR}/usr/share/tcltk/tcl8.6"
 export TK_LIBRARY="${APPDIR}/usr/share/tcltk/tk8.6"
 export TKPATH="${TK_LIBRARY}"
