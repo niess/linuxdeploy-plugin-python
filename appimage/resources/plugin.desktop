@@ -4,3 +4,4 @@ Type=Application
 Icon=linuxdeploy-plugin-python
 Exec=linuxdeploy-plugin-python
 Name=linuxdeploy-plugin-python
+Terminal=true
