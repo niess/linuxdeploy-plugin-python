@@ -53,4 +53,4 @@ popd
 
 ARCH="${ARCH}" ./"${appimagetool}" AppDir
 popd
-mv "${BUILD_DIR}/${EXEC_NAME}-${ARCH}.AppImage" "${REPO_ROOT}/appimage"
+mv -f "${BUILD_DIR}/${EXEC_NAME}-${ARCH}.AppImage" "${REPO_ROOT}/appimage"

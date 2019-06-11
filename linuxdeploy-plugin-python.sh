@@ -145,8 +145,6 @@ rm -rf "bin/python"*"-config" "bin/idle"* "include" "lib/pkgconfig" \
        "lib/python"*"/config-"*"-x86_64-linux-gnu"
 
 
-
-
 # Wrap the Python executables
 cd "$APPDIR/usr/bin"
 set +e
@@ -161,5 +159,21 @@ do
     fi
 done
 
+
+# Sanitize the shebangs of local Python scripts
+for exe in $(ls "${APPDIR}/usr/bin"*)
+do
+    sed -i '1s|^#!.*\(python[0-9.]*\)|#!/bin/sh\n"exec" "$(dirname $(readlink -f $\{0\}))/\1" "$0" "$@"|' "$exe"
+done
+
+
 # Set a hook in Python for cleaning the path detection
 cp "$BASEDIR/share/sitecustomize.py" "$APPDIR"/usr/lib/python*/site-packages
+
+
+# Relocate the Python extension modules for the dynamic linker
+python=$(ls "python"?"."?)
+cd "$APPDIR/usr/lib"
+mv "${python}/lib-dynload/"* "."
+rm -rf "${python}/lib-dynload"
+ln -fs "../" "${python}/lib-dynload"

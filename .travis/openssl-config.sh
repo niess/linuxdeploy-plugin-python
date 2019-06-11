@@ -8,4 +8,4 @@ else
 fi
 
 CONFIG_HASH=$(echo "$OPENSSL_CONFIG_FLAGS" | sha1sum | sed 's/ .*$//')
-OPENSSL_DIR="ossl-2/${OPENSSL}${CONFIG_HASH}"
+OPENSSL_DIR="${HOME}/openssl/${OPENSSL}${CONFIG_HASH}"

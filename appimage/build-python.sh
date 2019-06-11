@@ -79,4 +79,4 @@ sed -i "s|[{][{]name[}][}]|${name}|g" "${name}.desktop"
                    --output "appimage"
 
 popd
-mv "${BUILD_DIR}/${name}-${ARCH}.AppImage" "${REPO_ROOT}/appimage"
+mv -f "${BUILD_DIR}/${name}-${ARCH}.AppImage" "${REPO_ROOT}/appimage"

@@ -9,7 +9,7 @@ if [ -n "${OPENSSL}" ]; then
     wget --no-check-certificate -q "https://www.openssl.org/source/openssl-${OPENSSL}.tar.gz"
     tar zxf "openssl-${OPENSSL}.tar.gz"
     pushd "openssl-${OPENSSL}"
-    ./config $OPENSSL_CONFIG_FLAGS -fPIC --prefix="$HOME/$OPENSSL_DIR"
+    ./config $OPENSSL_CONFIG_FLAGS -fPIC --prefix="$OPENSSL_DIR"
     make depend
     make -j"$(nproc)"
     if [[ "${OPENSSL}" =~ 1.0.1 ]]; then
