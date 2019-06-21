@@ -115,11 +115,12 @@ class PluginTest(unittest.TestCase):
         v = [int(vi) for vi in version.split(".")]
         self.assertEqual(cfg["version"][:3], v)
         self.assertEqual(cfg["executable"], python)
-        self.assertEqual(cfg["prefix"], os.path.join(cfg["appdir"], "usr"))
+        self.assertEqual(cfg["prefix"], os.path.join(cfg["appdir"], "usr",
+            "python"))
         site_packages = os.path.join("lib",
             "python{:}.{:}".format(*cfg["version"][:2]), "site-packages")
         self.assertEqual(cfg["path"][-1], os.path.join(cfg["appdir"],
-            "usr", site_packages))
+            "usr", "python", site_packages))
         user_packages = os.path.join(cfg["home"], ".local", site_packages)
         self.assertTrue(user_packages in cfg["path"])
 

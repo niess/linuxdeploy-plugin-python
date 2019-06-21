@@ -9,6 +9,7 @@ fi
 
 EXEC_NAME="${EXEC_NAME:-linuxdeploy-plugin-python}"
 ARCH="${ARCH:-$(arch)}"
+PATCHELF_VERSION="0.10"
 
 REPO_ROOT=$(readlink -f $(dirname "$0")"/..")
 
@@ -30,6 +31,32 @@ fi
 pushd $BUILD_DIR
 
 
+# Install the ELF patcher
+prefix="${PWD}/AppDir/usr"
+mkdir -p "${prefix}"
+wget -cq --no-check-certificate "https://github.com/NixOS/patchelf/archive/${PATCHELF_VERSION}.tar.gz"
+tar -xzf "${PATCHELF_VERSION}.tar.gz"
+pushd "patchelf-${PATCHELF_VERSION}"
+./bootstrap.sh
+if [ "$ARCH" == "i386" ]; then
+    ./configure --prefix="${prefix}" --build=i686-pc-linux-gnu CFLAGS=-m32 CXXFLAGS=-m32 LDFLAGS=-m32
+elif [ "$ARCH" == "x86_64" ]; then
+    ./configure --prefix="${prefix}"
+fi
+make -j$(nproc)
+make install
+popd
+rm -rf "AppDir/usr/share"
+strip "AppDir/usr/bin/patchelf"
+
+
+# Package the exclusion list
+mkdir -p "AppDir/share"
+pushd "AppDir/share"
+wget -cq --no-check-certificate "https://raw.githubusercontent.com/probonopd/AppImages/master/excludelist"
+popd
+
+
 # Build the AppImage
 appimagetool="appimagetool-${ARCH}.AppImage"
 
@@ -39,7 +66,6 @@ if [ ! -f "${appimagetool}" ]; then
     chmod u+x "${appimagetool}"
 fi
 
-mkdir -p "AppDir/share"
 cp "${REPO_ROOT}/${EXEC_NAME}.sh" "AppDir/AppRun"
 chmod +x "AppDir/AppRun"
 cp -r "${REPO_ROOT}/share" "AppDir"

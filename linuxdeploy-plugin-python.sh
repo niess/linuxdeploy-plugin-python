@@ -119,61 +119,120 @@ if [[ "${source_dir}" == *.tgz ]] || [[ "${source_dir}" == *.tar.gz ]]; then
     source_dir="$filename"
 fi
 
+prefix="usr/python"
 cd "${source_dir}"
-./configure ${PYTHON_CONFIG} "--with-ensurepip=install" "--prefix=/usr"
+./configure ${PYTHON_CONFIG} "--with-ensurepip=install" "--prefix=/${prefix}"
 HOME="${PYTHON_BUILD_DIR}" make -j"$NPROC" DESTDIR="$APPDIR" install
-
-
-# Copy any TCl/Tk shared data
-if [ -d "/usr/share/tcltk" ]; then
-    cp -r "/usr/share/tcltk" "${APPDIR}/usr/share/tcltk"
-fi
 
 
 # Install any extra requirements with pip
 if [ ! -z "${PIP_REQUIREMENTS}" ]; then
-    cd "${APPDIR}/usr"
+    cd "${APPDIR}/${prefix}/bin"
     pythons=( "python"?"."? )
-    HOME="${PYTHON_BUILD_DIR}" PYTHONHOME=$PWD ./bin/${pythons[0]} -m pip install ${PIP_OPTIONS} ${PIP_REQUIREMENTS}
+    HOME="${PYTHON_BUILD_DIR}" PYTHONHOME=$(readlink -f ${PWD}/..) ./${pythons[0]} -m pip install ${PIP_OPTIONS} ${PIP_REQUIREMENTS}
 fi
 
 
 # Prune the install
-cd "$APPDIR/usr"
+cd "$APPDIR/${prefix}"
 rm -rf "bin/python"*"-config" "bin/idle"* "include" "lib/pkgconfig" \
        "share/doc" "share/man" "lib/libpython"*".a" "lib/python"*"/test" \
        "lib/python"*"/config-"*"-x86_64-linux-gnu"
 
 
 # Wrap the Python executables
-cd "$APPDIR/usr/bin"
+cd "$APPDIR/${prefix}/bin"
 set +e
 pythons=$(ls "python" "python"? "python"?"."? "python"?"."?"m" 2>/dev/null)
 set -e
+cd "$APPDIR/usr/bin"
 for python in $pythons
 do
     if [ ! -L "$python" ]; then
-        mv "$python" ".$python"
+        strip "$APPDIR/${prefix}/bin/${python}"
         cp "${BASEDIR}/share/python-wrapper.sh" "$python"
         sed -i "s|[{][{]PYTHON[}][}]|$python|g" "$python"
+        sed -i "s|[{][{]PREFIX[}][}]|$prefix|g" "$python"
     fi
 done
 
 
 # Sanitize the shebangs of local Python scripts
-for exe in $(ls "${APPDIR}/usr/bin"*)
+cd "$APPDIR/${prefix}/bin"
+for exe in $(ls "${APPDIR}/${prefix}/bin"*)
 do
-    sed -i '1s|^#!.*\(python[0-9.]*\)|#!/bin/sh\n"exec" "$(dirname $(readlink -f $\{0\}))/\1" "$0" "$@"|' "$exe"
+    sed -i '1s|^#!.*\(python[0-9.]*\)|#!/bin/sh\n"exec" "$(dirname $(readlink -f $\{0\}))/../../bin/\1" "$0" "$@"|' "$exe"
 done
 
 
 # Set a hook in Python for cleaning the path detection
-cp "$BASEDIR/share/sitecustomize.py" "$APPDIR"/usr/lib/python*/site-packages
+cp "$BASEDIR/share/sitecustomize.py" "$APPDIR"/${prefix}/lib/python*/site-packages
 
 
-# Relocate the Python extension modules for the dynamic linker
+# Patch binaries and install dependencies
+excludelist=$(cat "${BASEDIR}/share/excludelist" | sed 's|#.*||g' | sed -r '/^\s*$/d')
+
+is_excluded () {
+    local e
+    for e in ${excludelist}; do
+        [[ "$e" == "$1" ]] && echo "true" && return 0
+    done
+    return 0
+}
+
+set +e
+patchelf=$(command -v patchelf)
+set -e
+patchelf="${patchelf:-${BASEDIR}/usr/bin/patchelf}"
+
+patch_binary() {
+    local name="$(basename $1)"
+
+    if [ "${name::3}" == "lib" ]; then
+        if [ ! -f "${APPDIR}/usr/lib/${name}" ]; then
+            echo "Patching dependency ${name}"
+            strip "$1"
+            "${patchelf}" --set-rpath '$ORIGIN' "$1"
+            ln -rs "$1" "${APPDIR}/usr/lib"
+        fi
+    else
+        echo "Patching C-extension module ${name}"
+        strip "$1"
+
+        local rel=$(dirname $(readlink -f $1))
+        rel=${rel#${APPDIR}/usr}
+        rel=$(echo $rel | sed 's|/[_a-zA-Z0-9.-]*|/..|g')
+        "${patchelf}" --set-rpath '$ORIGIN:$ORIGIN'"${rel}/lib" "$1"
+    fi
+
+    local deps
+    for deps in $(ldd $1); do
+        if [[ "${deps::1}" == "/" ]] && [[ "${deps}" != "${APPDIR}"* ]]; then
+            local lib="$(basename ${deps})"
+            if [ ! -f "${APPDIR}/usr/lib/${lib}" ]; then
+                if [ ! "$(is_excluded ${lib})" ]; then
+                    echo "Installing dependency ${lib}"
+                    cp "${deps}" "${APPDIR}/usr/lib"
+                    strip "${APPDIR}/usr/lib/${lib}"
+                    "${patchelf}" --set-rpath '$ORIGIN' "${APPDIR}/usr/lib/${lib}"
+                fi
+            fi
+        fi
+    done
+    return 0
+}
+
+cd "$APPDIR/${prefix}/bin"
 python=$(ls "python"?"."?)
-cd "$APPDIR/usr/lib"
-mv "${python}/lib-dynload/"* "."
-rm -rf "${python}/lib-dynload"
-ln -fs "../" "${python}/lib-dynload"
+mkdir -p "${APPDIR}/usr/lib"
+cd "${APPDIR}/${prefix}/lib/${python}"
+find "lib-dynload" -name '*.so' -type f | while read file; do patch_binary "${file}"; done
+find "site-packages" -name '*.so' -type f | while read file; do patch_binary "${file}"; done
+find "site-packages" -name 'lib*.so*' -type f | while read file; do patch_binary "${file}"; done
+
+
+# Copy any TCl/Tk shared data
+if [[ -d "/usr/share/tcltk" ]] && [[ ! -d "${APPDIR}/${prefix}/share/tcltk" ]]; then
+    mkdir -p "${APPDIR}/${prefix}/share"
+    cp -r "/usr/share/tcltk" "${APPDIR}/${prefix}/share"
+fi

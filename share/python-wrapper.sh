@@ -1,13 +1,14 @@
 #!/bin/bash
 
 # Configure the environment
-export TCL_LIBRARY="${APPDIR}/usr/share/tcltk/tcl8.6"
-export TK_LIBRARY="${APPDIR}/usr/share/tcltk/tk8.6"
+prefix="{{PREFIX}}"
+export TCL_LIBRARY="${APPDIR}/${prefix}/share/tcltk/tcl"*
+export TK_LIBRARY="${APPDIR}/${prefix}/share/tcltk/tk"*
 export TKPATH="${TK_LIBRARY}"
 
 # Resolve symlinks within the image
 nickname="{{PYTHON}}"
-executable="${APPDIR}/usr/bin/${nickname}"
+executable="${APPDIR}/${prefix}/bin/${nickname}"
 if [ -L "${executable}" ]; then
     nickname="$(basename $(readlink -f ${executable}))"
 fi
@@ -18,7 +19,7 @@ do
     if [[ "${opt}" =~ "I" ]] || [[ "${opt}" =~ "E" ]]; then
         # Environment variables are disabled ($PYTHONHOME). Let's run in a safe
         # mode from the raw Python binary inside the AppImage
-        "$APPDIR/usr/bin/.${nickname}" "$@"
+        "$APPDIR/${prefix}/bin/${nickname}" "$@"
         exit "$?"
     fi
 done
@@ -33,5 +34,5 @@ fi
 # Wrap the call to Python in order to mimic a call from the source
 # executable ($ARGV0), but potentially located outside of the Python
 # install ($PYTHONHOME)
-(PYTHONHOME="${APPDIR}/usr" exec -a "${executable}" "$APPDIR/usr/bin/.${nickname}" "$@")
+(PYTHONHOME="${APPDIR}/${prefix}" exec -a "${executable}" "$APPDIR/${prefix}/bin/${nickname}" "$@")
 exit "$?"

@@ -70,11 +70,9 @@ sed -i "s|[{][{]exe[}][}]|${exe}|g" "${name}.desktop"
 sed -i "s|[{][{]name[}][}]|${name}|g" "${name}.desktop"
 
 ./"${linuxdeploy}" --appdir AppDir \
-                   --plugin python
-./"${linuxdeploy}" --appdir AppDir \
+                   --plugin python \
                    -i "${REPO_ROOT}/appimage/resources/python.png" \
                    -d "${name}.desktop" \
-                   -e "AppDir/usr/bin/.${exe}" \
                    --custom-apprun "AppDir/usr/bin/${exe}" \
                    --output "appimage"
 
