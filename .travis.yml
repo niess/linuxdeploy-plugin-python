@@ -15,10 +15,10 @@ matrix:
     - env: ARCH=x86_64
 
 install:
-  - docker build -t python-${ARCH} --build-arg Arch=${ARCH} .travis
+  - docker build -t ${DOCKER_USERNAME}/linuxdeploy-plugin-python:${ARCH} --build-arg Arch=${ARCH} .travis
 
 script:
-  - docker run --cap-add SYS_ADMIN --device /dev/fuse --mount src=$PWD,dst=/work,type=bind python-${ARCH}
+  - docker run --cap-add SYS_ADMIN --device /dev/fuse --mount src=$PWD,dst=/work,type=bind ${DOCKER_USERNAME}/linuxdeploy-plugin-python:${ARCH}
 
 after_success:
   - ./.travis/after-success.sh

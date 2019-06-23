@@ -2,7 +2,9 @@ FROM ubuntu:trusty
 LABEL maintainer="https://github.com/niess"
 
 ARG Arch=x86_64
-ENV ARCH="${Arch}" OPENSSL="1.1.1c"
+ENV ARCH="${Arch}"                                                             \
+    OPENSSL="1.1.1c"                                                           \
+    OPENSSL_DIR="${HOME}/openssl/${OPENSSL}${CONFIG_HASH}"
 
 RUN apt update -y -qq                                                       && \
     apt install --no-install-recommends -y -qq                                 \
@@ -13,6 +15,13 @@ RUN apt update -y -qq                                                       && \
 
 COPY . /work/.travis
 WORKDIR /work
+SHELL ["/bin/bash", "-c"]
 
 RUN ./.travis/install.sh
-CMD ./.travis/script.sh
+
+ENV PATH="${OPENSSL_DIR}/bin:${PATH}"                                          \
+    CFLAGS="${CFLAGS} -I${OPENSSL_DIR}/include"                                \
+    LDFLAGS="-L${OPENSSL_DIR}/lib -Wl,-rpath=${OPENSSL_DIR}/lib"               \
+    LD_LIBRARY_PATH="${OPENSSL_DIR}/lib:${LD_LIBRARY_PATH}"
+
+CMD ["./.travis/script.sh"]
