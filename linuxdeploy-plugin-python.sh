@@ -162,7 +162,7 @@ cd "$APPDIR/${prefix}/bin"
 for exe in $(ls "${APPDIR}/${prefix}/bin"*)
 do
     if [[ -f "$exe" ]] && [[ -x "$exe" ]]; then
-        sed -i '1s|^#!.*\(python[0-9.]*\)|#!/bin/sh\n"exec" "$(dirname $(readlink -f $\{0\}))/../../bin/\1" "$0" "$@"|' "$exe"
+        sed -i '1s|^#!.*\(python[0-9.]*\).*|#!/bin/sh\n"exec" "$(dirname $(readlink -f $\{0\}))/../../bin/\1" "$0" "$@"|' "$exe"
     fi
 done
 
