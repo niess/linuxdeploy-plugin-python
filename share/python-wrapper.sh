@@ -34,5 +34,5 @@ fi
 # Wrap the call to Python in order to mimic a call from the source
 # executable ($ARGV0), but potentially located outside of the Python
 # install ($PYTHONHOME)
-(PYTHONHOME="${APPDIR}/${prefix}" exec -a "${executable}" "$APPDIR/${prefix}/bin/${nickname}" {{ENTRYPOINT}} "$@")
+(PYTHONHOME="${APPDIR}/${prefix}" exec -a "${executable}" "$APPDIR/${prefix}/bin/${nickname}" "$@")
 exit "$?"

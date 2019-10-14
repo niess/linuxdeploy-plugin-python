@@ -20,7 +20,6 @@ script=$(readlink -f $0)
 exe_name="$(basename ${APPIMAGE:-$script})"
 BASEDIR="${APPDIR:-$(readlink -m $(dirname $script))}"
 
-PYTHON_ENTRYPOINT="${PYTHON_ENTRYPOINT:-}"
 
 # Parse the CLI
 show_usage () {
@@ -154,7 +153,6 @@ do
         cp "${BASEDIR}/share/python-wrapper.sh" "$python"
         sed -i "s|[{][{]PYTHON[}][}]|$python|g" "$python"
         sed -i "s|[{][{]PREFIX[}][}]|$prefix|g" "$python"
-        sed -i "s|[{][{]ENTRYPOINT[}][}]|$PYTHON_ENTRYPOINT|g" "$python"
     fi
 done
 
