@@ -1,5 +1,9 @@
 #!/bin/bash
 
+SCRIPT=`realpath $0`
+SCRIPTPATH=`dirname $SCRIPT`
+APPDIR="${APPDIR:-$SCRIPTPATH/../..}"
+
 # Configure the environment
 prefix="{{PREFIX}}"
 export TCL_LIBRARY="${APPDIR}/${prefix}/share/tcltk/tcl"*
