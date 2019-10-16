@@ -129,6 +129,7 @@ HOME="${PYTHON_BUILD_DIR}" make -j"$NPROC" DESTDIR="$APPDIR" install
 if [ ! -z "${PIP_REQUIREMENTS}" ]; then
     cd "${APPDIR}/${prefix}/bin"
     pythons=( "python"?"."? )
+    HOME="${PYTHON_BUILD_DIR}" PYTHONHOME=$(readlink -f ${PWD}/..) ./${pythons[0]} -m pip install --upgrade pip
     HOME="${PYTHON_BUILD_DIR}" PYTHONHOME=$(readlink -f ${PWD}/..) ./${pythons[0]} -m pip install ${PIP_OPTIONS} ${PIP_REQUIREMENTS}
 fi
 
