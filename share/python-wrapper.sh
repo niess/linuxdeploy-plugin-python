@@ -1,5 +1,9 @@
 #!/bin/bash
 
+SCRIPT=`realpath $0`
+SCRIPTPATH=`dirname $SCRIPT`
+APPDIR="${APPDIR:-$SCRIPTPATH/../..}"
+
 # Configure the environment
 prefix="{{PREFIX}}"
 export TCL_LIBRARY="${APPDIR}/${prefix}/share/tcltk/tcl"*
@@ -34,5 +38,5 @@ fi
 # Wrap the call to Python in order to mimic a call from the source
 # executable ($ARGV0), but potentially located outside of the Python
 # install ($PYTHONHOME)
-(PYTHONHOME="${APPDIR}/${prefix}" exec -a "${executable}" "$APPDIR/${prefix}/bin/${nickname}" "$@")
+(PYTHONHOME="${APPDIR}/${prefix}" exec -a "${executable}" "$APPDIR/${prefix}/bin/${nickname}" {{ENTRYPOINT}} "$@")
 exit "$?"
