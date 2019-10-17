@@ -228,6 +228,7 @@ patch_binary() {
 }
 
 cd "$APPDIR/${prefix}/bin"
+ln -s python3 python
 python=$(ls "python"?"."?)
 mkdir -p "${APPDIR}/usr/lib"
 cd "${APPDIR}/${prefix}/lib/${python}"
