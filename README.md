@@ -27,8 +27,8 @@ the [wiki][WIKI_USERS] for more detailed usage.
 [![Python 2](https://img.shields.io/badge/python2-x86_64-blue.svg)](https://github.com/niess/linuxdeploy-plugin-python/releases/download/continuous/python2-x86_64.AppImage)
 [![Python 3](https://img.shields.io/badge/python3-x86_64-blue.svg)](https://github.com/niess/linuxdeploy-plugin-python/releases/download/continuous/python3-x86_64.AppImage)
 [![Scipy](https://img.shields.io/badge/scipy-x86_64-blue.svg)](https://github.com/niess/linuxdeploy-plugin-python/releases/download/continuous/scipy-x86_64.AppImage)
+[![Xonsh](https://img.shields.io/badge/xonsh-x86_64-blue.svg)](https://github.com/niess/linuxdeploy-plugin-python/releases/download/continuous/xonsh-x86_64.AppImage)
 [![Plugin](https://img.shields.io/badge/plugin-x86_64-blue.svg)](https://github.com/niess/linuxdeploy-plugin-python/releases/download/continuous/linuxdeploy-plugin-python-x86_64.AppImage)
-
 
 
 [APPIMAGE]: https://appimage.org
