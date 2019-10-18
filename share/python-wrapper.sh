@@ -1,6 +1,6 @@
 #!/bin/bash
 
-SCRIPT=`realpath $0`
+SCRIPT=`readlink -f -- $0`
 SCRIPTPATH=`dirname $SCRIPT`
 APPDIR="${APPDIR:-$SCRIPTPATH/../..}"
 
