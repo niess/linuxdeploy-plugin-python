@@ -21,5 +21,3 @@ wrapped_run python python2
 wrapped_run python python3
 wrapped_run python scipy
 wrapped_run python xonsh
-
-python3 -m tests

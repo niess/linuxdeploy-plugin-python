@@ -19,6 +19,7 @@ install:
 
 script:
   - docker run --cap-add SYS_ADMIN --device /dev/fuse --mount src=$PWD,dst=/work,type=bind ${DOCKER_USERNAME}/linuxdeploy-plugin-python:${ARCH}
+  - python3 -m tests
 
 after_success:
   - ./.travis/after-success.sh

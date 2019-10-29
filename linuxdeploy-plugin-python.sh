@@ -48,6 +48,9 @@ show_usage () {
     echo "      Provide extra configuration flags for the Python build. Note"
     echo "      that the install prefix will be overwritten"
     echo ""
+    echo "  PYTHON_ENTRYPOINT=\"${PYTHON_ENTRYPOINT}\""
+    echo "      Extra options when calling the python executable"
+    echo ""
     echo "  PYTHON_SOURCE=\"${PYTHON_SOURCE}\""
     echo "      The source to use for Python. Can be a directory, an url or/and"
     echo "      an archive"
@@ -122,7 +125,7 @@ fi
 
 prefix="usr/python"
 cd "${source_dir}"
-./configure ${PYTHON_CONFIG} "--with-ensurepip=install" "--prefix=/${prefix}"
+./configure ${PYTHON_CONFIG} "--with-ensurepip=install" "--prefix=/${prefix}" LDFLAGS="${LDFLAGS} -Wl,-rpath='"'$$ORIGIN'"/../../lib'"
 HOME="${PYTHON_BUILD_DIR}" make -j"$NPROC" DESTDIR="$APPDIR" install
 
 
@@ -194,11 +197,16 @@ patch_binary() {
     local name="$(basename $1)"
 
     if [ "${name::3}" == "lib" ]; then
-        if [ ! -f "${APPDIR}/usr/lib/${name}" ]; then
+        if [ ! -f "${APPDIR}/usr/lib/${name}" ] && [ ! -L "${APPDIR}/usr/lib/${name}" ]; then
             echo "Patching dependency ${name}"
             strip "$1"
             "${patchelf}" --set-rpath '$ORIGIN' "$1"
-            ln -rs "$1" "${APPDIR}/usr/lib"
+            if [ "$(command -v symlinks)" ]; then
+                ln -s "$1" "${APPDIR}/usr/lib/${name}"
+                symlinks -c "${APPDIR}/usr/lib/${name}"
+            else
+                ln -rs "$1" "${APPDIR}/usr/lib"
+            fi
         fi
     else
         echo "Patching C-extension module ${name}"
@@ -238,7 +246,16 @@ find "site-packages" -name 'lib*.so*' -type f | while read file; do patch_binary
 
 
 # Copy any TCl/Tk shared data
-if [[ -d "/usr/share/tcltk" ]] && [[ ! -d "${APPDIR}/${prefix}/share/tcltk" ]]; then
-    mkdir -p "${APPDIR}/${prefix}/share"
-    cp -r "/usr/share/tcltk" "${APPDIR}/${prefix}/share"
+if [[ ! -d "${APPDIR}/${prefix}/share/tcltk" ]]; then
+    if [[ -d "/usr/share/tcltk" ]]; then
+        mkdir -p "${APPDIR}/${prefix}/share"
+        cp -r "/usr/share/tcltk" "${APPDIR}/${prefix}/share"
+    else
+        mkdir -p "${APPDIR}/${prefix}/share/tcltk"
+        tclpath="$(ls -d /usr/share/tcl* | tail -1)"
+        tkpath="$(ls -d /usr/share/tk* | tail -1)"
+        for path in "${tclpath}" "${tkpath}"; do
+            cp -r "${path}" "${APPDIR}/${prefix}/share/tcltk"
+        done
+    fi
 fi

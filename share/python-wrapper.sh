@@ -6,8 +6,8 @@ APPDIR="${APPDIR:-$SCRIPTPATH/../..}"
 
 # Configure the environment
 prefix="{{PREFIX}}"
-export TCL_LIBRARY="${APPDIR}/${prefix}/share/tcltk/tcl"*
-export TK_LIBRARY="${APPDIR}/${prefix}/share/tcltk/tk"*
+export TCL_LIBRARY="$(ls -d ${APPDIR}/${prefix}/share/tcltk/tcl* | tail -1)"
+export TK_LIBRARY="$(ls -d ${APPDIR}/${prefix}/share/tcltk/tk* | tail -1)"
 export TKPATH="${TK_LIBRARY}"
 
 # Resolve symlinks within the image
