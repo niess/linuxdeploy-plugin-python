@@ -15,11 +15,17 @@ matrix:
     - env: ARCH=x86_64
 
 install:
+  - # Setup the build env
   - docker build -t ${DOCKER_USERNAME}/linuxdeploy-plugin-python:${ARCH} --build-arg Arch=${ARCH} .travis
 
 script:
+  - # Build the AppImages
   - docker run --cap-add SYS_ADMIN --device /dev/fuse --mount src=$PWD,dst=/work,type=bind ${DOCKER_USERNAME}/linuxdeploy-plugin-python:${ARCH}
-  - python3 -m tests
+  - # Test the Python AppImages
+  - mkdir -p home/test/.local/lib/python2.7/site-packages
+  - mkdir -p home/test/.local/lib/python3.7/site-packages
+  - HOME=$PWD/home/test USER=test PATH="$PWD/home/test/.local/bin:$PATH" python3 -m tests
 
 after_success:
+  - # Upload the AppImages
   - ./.travis/after-success.sh
