@@ -24,6 +24,7 @@ script:
   - # Test the Python AppImages
   - mkdir -p home/test/.local/lib/python2.7/site-packages
   - mkdir -p home/test/.local/lib/python3.7/site-packages
+  - mkdir -p home/test/.local/lib/python3.8/site-packages
   - HOME=$PWD/home/test USER=test PATH="$PWD/home/test/.local/bin:$PATH" python3 -m tests
 
 after_success:

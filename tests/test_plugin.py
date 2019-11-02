@@ -6,7 +6,7 @@ import unittest
 import sys
 
 
-TAGS = ("python2", "python3")
+TAGS = ("python2.7.17", "python3.7.5", "python3.8.0")
 
 TESTDIR = "/tmp/test-linuxdeploy-plugin-python"
 ROOTDIR = os.path.realpath(os.path.dirname(__file__) + "/..").strip()
@@ -78,27 +78,46 @@ class PluginTest(unittest.TestCase):
                 os.path.join(TESTDIR, appimage))
 
 
-    def test_python3_base(self):
+    def test_python38_base(self):
         """Test the base functionalities of a Python 3 AppImage
         """
-        self.check_base("python3")
+        self.check_base("python3.8.0")
 
-    def test_python3_modules(self):
+
+    def test_python38_modules(self):
         """Test the modules availability of a Python 3 AppImage
         """
-        self.check_modules("python3")
+        self.check_modules("python3.8.0")
 
 
-    def test_python3_venv(self):
+    def test_python38_venv(self):
         """Test venv from a Python 3 AppImage
         """
-        self.check_venv("python3")
+        self.check_venv("python3.8.0")
+
+
+    def test_python37_base(self):
+        """Test the base functionalities of a Python 3 AppImage
+        """
+        self.check_base("python3.7.5")
+
+
+    def test_python37_modules(self):
+        """Test the modules availability of a Python 3 AppImage
+        """
+        self.check_modules("python3.7.5")
+
+
+    def test_python37_venv(self):
+        """Test venv from a Python 3 AppImage
+        """
+        self.check_venv("python3.7.5")
 
 
     def test_python2_base(self):
         """Test the base functionalities of a Python 2 AppImage
         """
-        self.check_base("python2")
+        self.check_base("python2.7.17")
 
 
     def check_base(self, tag):
@@ -106,7 +125,7 @@ class PluginTest(unittest.TestCase):
         """
         version = get_version(tag)
         appimage = "python{:}-{:}.AppImage".format(
-            version[0], os.getenv("ARCH"))
+            version, os.getenv("ARCH"))
 
         # Check the Python system configuration
         python = os.path.join(TESTDIR, appimage)
@@ -139,7 +158,7 @@ class PluginTest(unittest.TestCase):
         """
         version = get_version(tag)
         appimage = "python{:}-{:}.AppImage".format(
-            version[0], os.getenv("ARCH"))
+            version, os.getenv("ARCH"))
 
         # Generate a virtual environment
         if os.path.exists("ENV"):
@@ -187,7 +206,7 @@ class PluginTest(unittest.TestCase):
         """
         version = get_version(tag)
         appimage = "python{:}-{:}.AppImage".format(
-            version[0], os.getenv("ARCH"))
+            version, os.getenv("ARCH"))
 
         def import_(module):
             system("./{:} -c 'import {:}'".format(appimage, module))
