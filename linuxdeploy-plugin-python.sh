@@ -201,12 +201,7 @@ patch_binary() {
             echo "Patching dependency ${name}"
             strip "$1"
             "${patchelf}" --set-rpath '$ORIGIN' "$1"
-            if [ "$(command -v symlinks)" ]; then
-                ln -s "$1" "${APPDIR}/usr/lib/${name}"
-                symlinks -c "${APPDIR}/usr/lib/${name}"
-            else
-                ln -rs "$1" "${APPDIR}/usr/lib"
-            fi
+            ln -s "$2"/"$1" "${APPDIR}/usr/lib/${name}"
         fi
     else
         echo "Patching C-extension module ${name}"
@@ -240,9 +235,10 @@ cd "$APPDIR/${prefix}/bin"
 python=$(ls "python"?"."?)
 mkdir -p "${APPDIR}/usr/lib"
 cd "${APPDIR}/${prefix}/lib/${python}"
-find "lib-dynload" -name '*.so' -type f | while read file; do patch_binary "${file}"; done
-find "site-packages" -name '*.so' -type f | while read file; do patch_binary "${file}"; done
-find "site-packages" -name 'lib*.so*' -type f | while read file; do patch_binary "${file}"; done
+relpath="../../${prefix}/lib/${python}"
+find "lib-dynload" -name '*.so' -type f | while read file; do patch_binary "${file}" "${relpath}"; done
+find "site-packages" -name '*.so' -type f | while read file; do patch_binary "${file}" "${relpath}"; done
+find "site-packages" -name 'lib*.so*' -type f | while read file; do patch_binary "${file}" "${relpath}"; done
 
 
 # Copy any TCl/Tk shared data
