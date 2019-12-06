@@ -140,7 +140,7 @@ fi
 
 # Prune the install
 cd "$APPDIR/${prefix}"
-rm -rf "bin/python"*"-config" "bin/idle"* "include" "lib/pkgconfig" \
+rm -rf "bin/python"*"-config" "bin/idle"* "lib/pkgconfig" \
        "share/doc" "share/man" "lib/libpython"*".a" "lib/python"*"/test" \
        "lib/python"*"/config-"*"-x86_64-linux-gnu"
 
