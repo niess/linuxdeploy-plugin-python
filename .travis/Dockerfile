@@ -5,8 +5,9 @@ ARG Arch=x86_64
 ENV ARCH="${Arch}"                                                             \
     OPENSSL="1.1.1c"
 
-RUN yum -y install bzip2-devel fuse-sshfs ncurses-devel readline-devel         \
-                   sqlite-devel openssl-devel symlinks tk-devel xz-devel wget
+RUN yum -y install bzip2-devel fuse-sshfs gdbm-devel ncurses-devel             \
+                   readline-devel sqlite-devel openssl-devel symlinks tk-devel \
+                   xz-devel wget
 
 COPY . /work/.travis
 WORKDIR /work
