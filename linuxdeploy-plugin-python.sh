@@ -199,14 +199,11 @@ patch_binary() {
     if [ "${name::3}" == "lib" ]; then
         if [ ! -f "${APPDIR}/usr/lib/${name}" ] && [ ! -L "${APPDIR}/usr/lib/${name}" ]; then
             echo "Patching dependency ${name}"
-            strip "$1"
             "${patchelf}" --set-rpath '$ORIGIN' "$1"
             ln -s "$2"/"$1" "${APPDIR}/usr/lib/${name}"
         fi
     else
         echo "Patching C-extension module ${name}"
-        strip "$1"
-
         local rel=$(dirname $(readlink -f $1))
         rel=${rel#${APPDIR}/usr}
         rel=$(echo $rel | sed 's|/[_a-zA-Z0-9.-]*|/..|g')
@@ -221,7 +218,6 @@ patch_binary() {
                 if [ ! "$(is_excluded ${lib})" ]; then
                     echo "Installing dependency ${lib}"
                     cp "${deps}" "${APPDIR}/usr/lib"
-                    strip "${APPDIR}/usr/lib/${lib}"
                     "${patchelf}" --set-rpath '$ORIGIN' "${APPDIR}/usr/lib/${lib}"
                 fi
             fi
