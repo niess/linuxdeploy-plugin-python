@@ -31,7 +31,7 @@ done
 # But don't resolve symlinks from outside!
 if [[ "${ARGV0}" =~ "/" ]]; then
     executable="$(cd $(dirname ${ARGV0}) && pwd)/$(basename ${ARGV0})"
-else
+elif [[ "${ARGV0}" != "" ]]; then
     executable=$(which "${ARGV0}")
 fi
 
