@@ -1,0 +1,2 @@
+export PYTHON_VERSION="3.7.6"
+export PIP_REQUIREMENTS=
