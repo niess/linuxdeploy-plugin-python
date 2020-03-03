@@ -106,6 +106,13 @@ else
     mkdir -p "${PYTHON_BUILD_DIR}"
 fi
 
+# check if the given sources are a local file or directory; if yes,
+# "save" the full path. It might've been given relative to the current
+# directory.
+if [ -e "${PYTHON_SOURCE}" ]; then
+    PYTHON_SOURCE=$( readlink -f "${PYTHON_SOURCE}" )
+fi
+
 cd "${PYTHON_BUILD_DIR}"
 
 
