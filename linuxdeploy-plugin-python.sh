@@ -111,16 +111,22 @@ cd "${PYTHON_BUILD_DIR}"
 
 
 # Install Python from sources
-source_dir=$(basename "${PYTHON_SOURCE}")
+source_file=$(basename "${PYTHON_SOURCE}")
 if [[ "${PYTHON_SOURCE}" == http* ]] || [[ "${PYTHON_SOURCE}" == ftp* ]]; then
     wget -c --no-check-certificate "${PYTHON_SOURCE}"
 else
-    cp -r "${source_dir}" "."
+    cp -r "${PYTHON_SOURCE}" "."
 fi
-if [[ "${source_dir}" == *.tgz ]] || [[ "${source_dir}" == *.tar.gz ]]; then
-    filename="${source_dir%.*}"
-    [[ -f $filename ]] || tar -xzf "${source_dir}"
-    source_dir="$filename"
+if [[ "${source_file}" == *.tgz ]] || [[ "${source_file}" == *.tar.gz ]]; then
+    if [[ "${source_file}" == *.tgz ]]; then
+        dirname="${source_file%.*}"
+    else
+        dirname="${source_file%.*.*}"
+    fi
+    [[ -f $dirname ]] || tar -xzf "${source_file}"
+    source_dir="$dirname"
+else
+    source_dir="$source_file"
 fi
 
 prefix="usr/python"
@@ -133,7 +139,7 @@ HOME="${PYTHON_BUILD_DIR}" make -j"$NPROC" DESTDIR="$APPDIR" install
 if [ ! -z "${PIP_REQUIREMENTS}" ]; then
     cd "${APPDIR}/${prefix}/bin"
     pythons=( "python"?"."? )
-    HOME="${PYTHON_BUILD_DIR}" PYTHONHOME=$(readlink -f ${PWD}/..) ./${pythons[0]} -m pip install --upgrade pip
+    HOME="${PYTHON_BUILD_DIR}" PYTHONHOME=$(readlink -f ${PWD}/..) ./${pythons[0]} -m pip install ${PIP_OPTIONS} --upgrade pip
     HOME="${PYTHON_BUILD_DIR}" PYTHONHOME=$(readlink -f ${PWD}/..) ./${pythons[0]} -m pip install ${PIP_OPTIONS} ${PIP_REQUIREMENTS}
 fi
 
