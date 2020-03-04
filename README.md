@@ -41,3 +41,6 @@ the [wiki][WIKI_USERS] for more detailed usage.
 
 [WIKI_DEVS]: ../../wiki/Developers
 [WIKI_USERS]: ../../wiki/Users
+
+## Projects that use linuxdeploy-plugin-python
+* [xxh](https://github.com/xxh/xxh) - bring your favorite shell wherever you go through the ssh 
