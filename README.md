@@ -15,14 +15,21 @@ are located on the [wiki][WIKI_DEVS].
 ## [For users][WIKI_USERS] 
 
 Ready to use [AppImage][APPIMAGE] distributions of [Python][PYTHON] are provided
-[below](##Downloads) or in the [release][RELEASE] area. A one liner example is:
+in the [downloads](##Downloads) sections below or in the [release][RELEASE]
+area. A one liner example is:
 ```
 wget -cq https://github.com/niess/linuxdeploy-plugin-python/releases/download/continuous/python3.8.1-x86_64.AppImage && chmod u+x python3.8.1-x86_64.AppImage && ./python3.8.1-x86_64.AppImage
 ```
 which will install and run a [Python][PYTHON] instance.  See the instructions on
 the [wiki][WIKI_USERS] for more detailed usage.
 
-## Downloadable AppImages
+## Projects using [linuxdeploy-plugin-python][PYTHON_PLUGIN]
+* [grand/python](https://github.com/grand-mother/python) - Contained, portable
+  and modern python for [GRAND][GRAND] running from an AppImage
+* [xxh](https://github.com/xxh/xxh) - Bring your favorite shell wherever you go
+  through the ssh 
+
+## Downloads
 
 [![Python 2.7](https://img.shields.io/badge/python2.7-x86_64-blue.svg)](https://github.com/niess/linuxdeploy-plugin-python/releases/download/continuous/python2.7.17-x86_64.AppImage)
 [![Python 3.7](https://img.shields.io/badge/python3.7-x86_64-blue.svg)](https://github.com/niess/linuxdeploy-plugin-python/releases/download/continuous/python3.7.6-x86_64.AppImage)
@@ -34,13 +41,12 @@ the [wiki][WIKI_USERS] for more detailed usage.
 
 [APPIMAGE]: https://appimage.org
 [APPDIR]: https://docs.appimage.org/reference/appdir.html
+[GRAND]: http://grand.cnrs.fr
 [LINUXDEPLOY]: https://github.com/linuxdeploy/linuxdeploy
 [PYPI]: https://pypi.org
 [PYTHON]: https://www.python.org
+[PYTHON_PLUGIN]: https://github.com/niess/linuxdeploy-plugin-python
 [RELEASE]: https://github.com/niess/linuxdeploy-plugin-python/releases
-
 [WIKI_DEVS]: ../../wiki/Developers
 [WIKI_USERS]: ../../wiki/Users
 
-## Projects that use linuxdeploy-plugin-python
-* [xxh](https://github.com/xxh/xxh) - bring your favorite shell wherever you go through the ssh 
