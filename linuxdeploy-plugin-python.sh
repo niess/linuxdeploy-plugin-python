@@ -20,8 +20,6 @@ script=$(readlink -f $0)
 exe_name="$(basename ${APPIMAGE:-$script})"
 BASEDIR="${APPDIR:-$(readlink -m $(dirname $script))}"
 
-PYTHON_ENTRYPOINT="${PYTHON_ENTRYPOINT:-}"
-
 # Parse the CLI
 show_usage () {
     echo "Usage: ${exe_name} --appdir <path to AppDir>"
@@ -47,9 +45,6 @@ show_usage () {
     echo "  PYTHON_CONFIG=\"${PYTHON_CONFIG}\""
     echo "      Provide extra configuration flags for the Python build. Note"
     echo "      that the install prefix will be overwritten"
-    echo ""
-    echo "  PYTHON_ENTRYPOINT=\"${PYTHON_ENTRYPOINT}\""
-    echo "      Extra options when calling the python executable"
     echo ""
     echo "  PYTHON_SOURCE=\"${PYTHON_SOURCE}\""
     echo "      The source to use for Python. Can be a directory, an url or/and"
@@ -171,7 +166,6 @@ do
         cp "${BASEDIR}/share/python-wrapper.sh" "$python"
         sed -i "s|[{][{]PYTHON[}][}]|$python|g" "$python"
         sed -i "s|[{][{]PREFIX[}][}]|$prefix|g" "$python"
-        sed -i "s|[{][{]ENTRYPOINT[}][}]|$PYTHON_ENTRYPOINT|g" "$python"
     fi
 done
 

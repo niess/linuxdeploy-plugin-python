@@ -69,11 +69,15 @@ cp "${REPO_ROOT}/appimage/resources/python.desktop" "${name}.desktop"
 sed -i "s|[{][{]exe[}][}]|${exe}|g" "${name}.desktop"
 sed -i "s|[{][{]name[}][}]|${name}|g" "${name}.desktop"
 
+cp "${REPO_ROOT}/appimage/resources/apprun.sh" "AppRun"
+sed -i "s|[{][{]exe[}][}]|${exe}|g" "AppRun"
+sed -i "s|[{][{]entrypoint[}][}]|${APPRUN_ENTRYPOINT}|g" "AppRun"
+
 ./"${linuxdeploy}" --appdir AppDir \
                    --plugin python \
                    -i "${REPO_ROOT}/appimage/resources/python.png" \
                    -d "${name}.desktop" \
-                   --custom-apprun "AppDir/usr/bin/${exe}" \
+                   --custom-apprun "AppRun" \
                    --output "appimage"
 
 popd
