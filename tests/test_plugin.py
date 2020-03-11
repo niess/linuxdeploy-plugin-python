@@ -6,7 +6,7 @@ import unittest
 import sys
 
 
-TAGS = ("python2.7.17", "python3.7.6", "python3.8.1")
+TAGS = ("python2.7.17", "python3.7.6", "python3.8.2")
 
 TESTDIR = "/tmp/test-linuxdeploy-plugin-python"
 ROOTDIR = os.path.realpath(os.path.dirname(__file__) + "/..").strip()
@@ -81,19 +81,19 @@ class PluginTest(unittest.TestCase):
     def test_python38_base(self):
         """Test the base functionalities of a Python 3 AppImage
         """
-        self.check_base("python3.8.1")
+        self.check_base("python3.8.2")
 
 
     def test_python38_modules(self):
         """Test the modules availability of a Python 3 AppImage
         """
-        self.check_modules("python3.8.1")
+        self.check_modules("python3.8.2")
 
 
     def test_python38_venv(self):
         """Test venv from a Python 3 AppImage
         """
-        self.check_venv("python3.8.1")
+        self.check_venv("python3.8.2")
 
 
     def test_python37_base(self):
