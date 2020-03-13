@@ -13,7 +13,7 @@ PIP_OPTIONS="${PIP_OPTIONS:---upgrade}"
 PIP_REQUIREMENTS="${PIP_REQUIREMENTS:-}"
 PYTHON_BUILD_DIR="${PYTHON_BUILD_DIR:-}"
 PYTHON_CONFIG="${PYTHON_CONFIG:-}"
-version="3.7.3"
+version="3.8.2"
 PYTHON_SOURCE="${PYTHON_SOURCE:-https://www.python.org/ftp/python/${version}/Python-${version}.tgz}"
 
 script=$(readlink -f $0)
@@ -158,6 +158,7 @@ cd "$APPDIR/${prefix}/bin"
 set +e
 pythons=$(ls "python" "python"? "python"?"."? "python"?"."?"m" 2>/dev/null)
 set -e
+mkdir -p "$APPDIR/usr/bin"
 cd "$APPDIR/usr/bin"
 for python in $pythons
 do
@@ -185,7 +186,12 @@ cp "$BASEDIR/share/sitecustomize.py" "$APPDIR"/${prefix}/lib/python*/site-packag
 
 
 # Patch binaries and install dependencies
-excludelist=$(cat "${BASEDIR}/share/excludelist" | sed 's|#.*||g' | sed -r '/^\s*$/d')
+excludelist="${BASEDIR}/share/excludelist"
+if [ ! -f "${excludelist}" ]; then
+    wget -cq --no-check-certificate "https://raw.githubusercontent.com/probonopd/AppImages/master/excludelist"
+    excludelist="excludelist"
+fi
+excludelist=$(cat "${excludelist}" | sed 's|#.*||g' | sed -r '/^\s*$/d')
 
 is_excluded () {
     local e
@@ -199,6 +205,12 @@ set +e
 patchelf=$(command -v patchelf)
 set -e
 patchelf="${patchelf:-${BASEDIR}/usr/bin/patchelf}"
+if [ ! -f "${patchelf}" ]; then
+    ARCH="${ARCH:-x86_64}"
+    wget -cq https://github.com/niess/patchelf.appimage/releases/download/${ARCH}/patchelf-${ARCH}.AppImage
+    patchelf="$(pwd)/patchelf-${ARCH}.AppImage"
+    chmod u+x "${patchelf}"
+fi
 
 patch_binary() {
     local name="$(basename $1)"
