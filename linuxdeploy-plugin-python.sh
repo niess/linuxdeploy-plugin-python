@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ -z "$DEBUG" ] || [ "$DEBUG" -eq "0" ]; then
+if [[ -z "$DEBUG" ]] || [[ "$DEBUG" -eq "0" ]]; then
     set -e
 else
     set -ex
@@ -20,11 +20,18 @@ script=$(readlink -f $0)
 exe_name="$(basename ${APPIMAGE:-$script})"
 BASEDIR="${APPDIR:-$(readlink -m $(dirname $script))}"
 
+prefix="usr/python"
+
+
 # Parse the CLI
 show_usage () {
     echo "Usage: ${exe_name} --appdir <path to AppDir>"
     echo
-    echo "Bundle Python into an AppDir"
+    echo "Bundle Python into an AppDir under \${APPDIR}/${prefix}. In addition"
+    echo "extra packages can be bundled as well using \$PIP_REQUIREMENTS."
+    echo "Note that if an existing install of Python already exists then no new"
+    echo "install of Python is done, i.e. \${PYTHON_SOURCE} and its related"
+    echo "arguments are ignored. Yet, extra \$PIP_REQUIREMENTS are installed."
     echo
     echo "Variables:"
     echo "  NPROC=\"${NPROC}\""
@@ -54,7 +61,7 @@ show_usage () {
 
 APPDIR=
 
-while [ ! -z "$1" ]; do
+while [[ ! -z "$1" ]]; do
     case "$1" in
         --plugin-api-version)
             echo "0"
@@ -78,7 +85,7 @@ while [ ! -z "$1" ]; do
     esac
 done
 
-if [ -z "$APPDIR" ]; then
+if [[ -z "$APPDIR" ]]; then
     show_usage
     exit 1
 else
@@ -88,7 +95,7 @@ fi
 
 
 # Setup a temporary work space
-if [ -z "${PYTHON_BUILD_DIR}" ]; then
+if [[ -z "${PYTHON_BUILD_DIR}" ]]; then
     PYTHON_BUILD_DIR=$(mktemp -d)
 
     atexit() {
@@ -101,48 +108,54 @@ else
     mkdir -p "${PYTHON_BUILD_DIR}"
 fi
 
-# check if the given sources are a local file or directory; if yes,
-# "save" the full path. It might've been given relative to the current
-# directory.
-if [ -e "${PYTHON_SOURCE}" ]; then
-    PYTHON_SOURCE=$( readlink -f "${PYTHON_SOURCE}" )
-fi
 
-cd "${PYTHON_BUILD_DIR}"
+# Install Python from source, if not already in the AppDir
+set +e
+python=$(ls "${APPDIR}/${prefix}/bin/python"?"."?)
+set -e
 
-
-
-# Install Python from sources
-source_file=$(basename "${PYTHON_SOURCE}")
-if [[ "${PYTHON_SOURCE}" == http* ]] || [[ "${PYTHON_SOURCE}" == ftp* ]]; then
-    wget -c --no-check-certificate "${PYTHON_SOURCE}"
+if [[ -x "${python}" ]]; then
+    echo "Found existing install under ${APPDIR}/${prefix}. Skipping Python build."
 else
-    cp -r "${PYTHON_SOURCE}" "."
-fi
-if [[ "${source_file}" == *.tgz ]] || [[ "${source_file}" == *.tar.gz ]]; then
-    if [[ "${source_file}" == *.tgz ]]; then
-        dirname="${source_file%.*}"
-    else
-        dirname="${source_file%.*.*}"
+    # Check if the given sources are a local file or directory; if yes,
+    # "save" the full path. It might've been given relative to the current
+    # directory.
+    if [[ -e "${PYTHON_SOURCE}" ]]; then
+        PYTHON_SOURCE=$(readlink -f "${PYTHON_SOURCE}")
     fi
-    [[ -f $dirname ]] || tar -xzf "${source_file}"
-    source_dir="$dirname"
-else
-    source_dir="$source_file"
+
+    cd "${PYTHON_BUILD_DIR}"
+    source_file=$(basename "${PYTHON_SOURCE}")
+    if [[ "${PYTHON_SOURCE}" == http* ]] || [[ "${PYTHON_SOURCE}" == ftp* ]]; then
+        wget -c --no-check-certificate "${PYTHON_SOURCE}"
+    else
+        cp -r "${PYTHON_SOURCE}" "."
+    fi
+    if [[ "${source_file}" == *.tgz ]] || [[ "${source_file}" == *.tar.gz ]]; then
+        if [[ "${source_file}" == *.tgz ]]; then
+            dirname="${source_file%.*}"
+        else
+            dirname="${source_file%.*.*}"
+        fi
+        [[ -f $dirname ]] || tar -xzf "${source_file}"
+        source_dir="$dirname"
+    else
+        source_dir="$source_file"
+    fi
+
+    cd "${source_dir}"
+    ./configure ${PYTHON_CONFIG} "--with-ensurepip=install" "--prefix=/${prefix}" LDFLAGS="${LDFLAGS} -Wl,-rpath='"'$$ORIGIN'"/../../lib'"
+    HOME="${PYTHON_BUILD_DIR}" make -j"$NPROC" DESTDIR="$APPDIR" install
 fi
 
-prefix="usr/python"
-cd "${source_dir}"
-./configure ${PYTHON_CONFIG} "--with-ensurepip=install" "--prefix=/${prefix}" LDFLAGS="${LDFLAGS} -Wl,-rpath='"'$$ORIGIN'"/../../lib'"
-HOME="${PYTHON_BUILD_DIR}" make -j"$NPROC" DESTDIR="$APPDIR" install
+cd "${APPDIR}/${prefix}/bin"
+PYTHON_X_Y=$(ls "python"?"."?)
 
 
 # Install any extra requirements with pip
-if [ ! -z "${PIP_REQUIREMENTS}" ]; then
-    cd "${APPDIR}/${prefix}/bin"
-    pythons=( "python"?"."? )
-    HOME="${PYTHON_BUILD_DIR}" PYTHONHOME=$(readlink -f ${PWD}/..) ./${pythons[0]} -m pip install ${PIP_OPTIONS} --upgrade pip
-    HOME="${PYTHON_BUILD_DIR}" PYTHONHOME=$(readlink -f ${PWD}/..) ./${pythons[0]} -m pip install ${PIP_OPTIONS} ${PIP_REQUIREMENTS}
+if [[ ! -z "${PIP_REQUIREMENTS}" ]]; then
+    HOME="${PYTHON_BUILD_DIR}" PYTHONHOME=$(readlink -f ${PWD}/..) ./${PYTHON_X_Y} -m pip install ${PIP_OPTIONS} --upgrade pip
+    HOME="${PYTHON_BUILD_DIR}" PYTHONHOME=$(readlink -f ${PWD}/..) ./${PYTHON_X_Y} -m pip install ${PIP_OPTIONS} ${PIP_REQUIREMENTS}
 fi
 
 
@@ -162,7 +175,7 @@ mkdir -p "$APPDIR/usr/bin"
 cd "$APPDIR/usr/bin"
 for python in $pythons
 do
-    if [ ! -L "$python" ]; then
+    if [[ ! -L "$python" ]]; then
         strip "$APPDIR/${prefix}/bin/${python}"
         cp "${BASEDIR}/share/python-wrapper.sh" "$python"
         sed -i "s|[{][{]PYTHON[}][}]|$python|g" "$python"
@@ -175,7 +188,7 @@ done
 cd "$APPDIR/${prefix}/bin"
 for exe in $(ls "${APPDIR}/${prefix}/bin"*)
 do
-    if [[ -f "$exe" ]] && [[ -x "$exe" ]]; then
+    if [[ -x "$exe" ]]; then
         sed -i '1s|^#!.*\(python[0-9.]*\).*|#!/bin/sh\n"exec" "$(dirname $(readlink -f $\{0\}))/../../bin/\1" "$0" "$@"|' "$exe"
     fi
 done
@@ -187,7 +200,7 @@ cp "$BASEDIR/share/sitecustomize.py" "$APPDIR"/${prefix}/lib/python*/site-packag
 
 # Patch binaries and install dependencies
 excludelist="${BASEDIR}/share/excludelist"
-if [ ! -f "${excludelist}" ]; then
+if [[ ! -f "${excludelist}" ]]; then
     wget -cq --no-check-certificate "https://raw.githubusercontent.com/probonopd/AppImages/master/excludelist"
     excludelist="excludelist"
 fi
@@ -205,7 +218,7 @@ set +e
 patchelf=$(command -v patchelf)
 set -e
 patchelf="${patchelf:-${BASEDIR}/usr/bin/patchelf}"
-if [ ! -f "${patchelf}" ]; then
+if [[ ! -x "${patchelf}" ]]; then
     ARCH="${ARCH:-x86_64}"
     wget -cq https://github.com/niess/patchelf.appimage/releases/download/${ARCH}/patchelf-${ARCH}.AppImage
     patchelf="$(pwd)/patchelf-${ARCH}.AppImage"
@@ -215,8 +228,8 @@ fi
 patch_binary() {
     local name="$(basename $1)"
 
-    if [ "${name::3}" == "lib" ]; then
-        if [ ! -f "${APPDIR}/usr/lib/${name}" ] && [ ! -L "${APPDIR}/usr/lib/${name}" ]; then
+    if [[ "${name::3}" == "lib" ]]; then
+        if [[ ! -f "${APPDIR}/usr/lib/${name}" ]] && [[ ! -L "${APPDIR}/usr/lib/${name}" ]]; then
             echo "Patching dependency ${name}"
             "${patchelf}" --set-rpath '$ORIGIN' "$1"
             ln -s "$2"/"$1" "${APPDIR}/usr/lib/${name}"
@@ -233,8 +246,8 @@ patch_binary() {
     for deps in $(ldd $1); do
         if [[ "${deps::1}" == "/" ]] && [[ "${deps}" != "${APPDIR}"* ]]; then
             local lib="$(basename ${deps})"
-            if [ ! -f "${APPDIR}/usr/lib/${lib}" ]; then
-                if [ ! "$(is_excluded ${lib})" ]; then
+            if [[ ! -f "${APPDIR}/usr/lib/${lib}" ]]; then
+                if [[ ! "$(is_excluded ${lib})" ]]; then
                     echo "Installing dependency ${lib}"
                     cp "${deps}" "${APPDIR}/usr/lib"
                     "${patchelf}" --set-rpath '$ORIGIN' "${APPDIR}/usr/lib/${lib}"
@@ -246,11 +259,10 @@ patch_binary() {
 }
 
 cd "$APPDIR/${prefix}/bin"
-[ -f python3 ] && ln -fs python3 python
-python=$(ls "python"?"."?)
+[[ -f python3 ]] && ln -fs python3 python
 mkdir -p "${APPDIR}/usr/lib"
-cd "${APPDIR}/${prefix}/lib/${python}"
-relpath="../../${prefix}/lib/${python}"
+cd "${APPDIR}/${prefix}/lib/${PYTHON_X_Y}"
+relpath="../../${prefix}/lib/${PYTHON_X_Y}"
 find "lib-dynload" -name '*.so' -type f | while read file; do patch_binary "${file}" "${relpath}"; done
 find "site-packages" -name '*.so' -type f | while read file; do patch_binary "${file}" "${relpath}"; done
 find "site-packages" -name 'lib*.so*' -type f | while read file; do patch_binary "${file}" "${relpath}"; done
