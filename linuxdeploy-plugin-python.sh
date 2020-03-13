@@ -201,8 +201,10 @@ cp "$BASEDIR/share/sitecustomize.py" "$APPDIR"/${prefix}/lib/python*/site-packag
 # Patch binaries and install dependencies
 excludelist="${BASEDIR}/share/excludelist"
 if [[ ! -f "${excludelist}" ]]; then
+    pushd "${BASEDIR}"
     wget -cq --no-check-certificate "https://raw.githubusercontent.com/probonopd/AppImages/master/excludelist"
-    excludelist="excludelist"
+    excludelist="$(pwd)/excludelist"
+    popd
 fi
 excludelist=$(cat "${excludelist}" | sed 's|#.*||g' | sed -r '/^\s*$/d')
 
@@ -220,9 +222,11 @@ set -e
 patchelf="${patchelf:-${BASEDIR}/usr/bin/patchelf}"
 if [[ ! -x "${patchelf}" ]]; then
     ARCH="${ARCH:-x86_64}"
+    pushd "${BASEDIR}"
     wget -cq https://github.com/niess/patchelf.appimage/releases/download/${ARCH}/patchelf-${ARCH}.AppImage
     patchelf="$(pwd)/patchelf-${ARCH}.AppImage"
     chmod u+x "${patchelf}"
+    popd
 fi
 
 patch_binary() {
