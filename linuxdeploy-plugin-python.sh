@@ -37,26 +37,26 @@ show_usage () {
     echo "  NPROC=\"${NPROC}\""
     echo "      The number of processors to use for building Python from a"
     echo "      source distribution"
-    echo ""
+    echo
     echo "  PIP_OPTIONS=\"${PIP_OPTIONS}\""
     echo "      Options for pip when bundling extra site-packages"
-    echo ""
+    echo
     echo "  PIP_REQUIREMENTS=\"${PIP_REQUIREMENTS}\""
     echo "      Specify extra site-packages to embed in the AppImage. Those are"
     echo "      installed with pip as requirements"
-    echo ""
+    echo
     echo "  PYTHON_BUILD_DIR=\"\""
     echo "      Set the build directory for Python. A temporary one will be"
     echo "      created otherwise"
-    echo ""
+    echo
     echo "  PYTHON_CONFIG=\"${PYTHON_CONFIG}\""
     echo "      Provide extra configuration flags for the Python build. Note"
     echo "      that the install prefix will be overwritten"
-    echo ""
+    echo
     echo "  PYTHON_SOURCE=\"${PYTHON_SOURCE}\""
     echo "      The source to use for Python. Can be a directory, an url or/and"
     echo "      an archive"
-    echo ""
+    echo
 }
 
 APPDIR=
@@ -272,8 +272,6 @@ mkdir -p "${APPDIR}/usr/lib"
 cd "${APPDIR}/${prefix}/lib/${PYTHON_X_Y}"
 relpath="../../${prefix}/lib/${PYTHON_X_Y}"
 find "lib-dynload" -name '*.so' -type f | while read file; do patch_binary "${file}" "${relpath}"; done
-find "site-packages" -name '*.so' -type f | while read file; do patch_binary "${file}" "${relpath}"; done
-find "site-packages" -name 'lib*.so*' -type f | while read file; do patch_binary "${file}" "${relpath}"; done
 
 
 # Copy any TCl/Tk shared data
