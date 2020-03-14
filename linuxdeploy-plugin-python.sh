@@ -240,10 +240,14 @@ patch_binary() {
         fi
     else
         echo "Patching C-extension module ${name}"
-        local rel=$(dirname $(readlink -f $1))
+        local rpath="$(${patchelf} --print-rpath $1)"
+        local rel="$(dirname $(readlink -f $1))"
         rel=${rel#${APPDIR}/usr}
         rel=$(echo $rel | sed 's|/[_a-zA-Z0-9.-]*|/..|g')
-        "${patchelf}" --set-rpath '$ORIGIN:$ORIGIN'"${rel}/lib" "$1"
+        if grep -qv '$ORIGIN'"${rel}/lib" <<< "${rpath}" ; then
+            [[ ! -z "${rpath}" ]] && rpath="${rpath}:"
+            "${patchelf}" --set-rpath "${rpath}"'$ORIGIN'"${rel}/lib" "$1"
+        fi
     fi
 
     local deps
