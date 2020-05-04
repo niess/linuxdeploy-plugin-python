@@ -15,7 +15,7 @@ are located on the [wiki][WIKI_DEVS].
 ## [For users][WIKI_USERS] 
 
 Ready to use [AppImage][APPIMAGE] distributions of [Python][PYTHON] are provided
-in the [downloads](##Downloads) sections below or in the [release][RELEASE]
+in the [downloads](#downloads) sections below or in the [release][RELEASE]
 area. A one liner example is:
 ```
 wget -cq https://github.com/niess/linuxdeploy-plugin-python/releases/download/continuous/python3.8.2-x86_64.AppImage && chmod u+x python3.8.2-x86_64.AppImage && ./python3.8.2-x86_64.AppImage
