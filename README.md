@@ -1,3 +1,6 @@
+**Manylinux Python AppImages are now available from the new [python-appimage](https://github.com/niess/python-appimage) project. Building basic Python apps has also been made easier with the latter.**
+
+---
 
 # A Python plugin for linuxdeploy [![Build Status](https://travis-ci.com/niess/linuxdeploy-plugin-python.svg?branch=master)](https://travis-ci.com/niess/linuxdeploy-plugin-python)
 
