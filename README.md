@@ -1,4 +1,8 @@
-**Manylinux Python AppImages are now available from the new [python-appimage](https://github.com/niess/python-appimage) project. Building basic Python apps has also been made easier with the latter.**
+> [!WARNING]
+> This project is no longer being updated. You can now find ready-to-use
+> Manylinux Python AppImages on the
+> [python-appimage](https://github.com/niess/python-appimage) project. The
+> latter project also makes it easier to build basic Python apps.
 
 ---
 
